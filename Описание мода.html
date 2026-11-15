@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="generator" content="HTML Note 0.1">
+<title>NTE Interactive Map — кошельки, сейфы, еда и монстры на карте</title>
+<style>
+/* Страница сохранённого документа: холст с листами, содержание слева, просмотр картинок. */
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 16px; }
+body.hn-page { margin: 0; background: #141518; color: #e6e6e9; font: 16px/1.65 'Segoe UI', Arial, sans-serif; }
+/* Сверху отступа нет: лист стоит на том же расстоянии от края окна, что и в редакторе (его координата Y). */
+.hn-layout { display: grid; grid-template-columns: minmax(0, 1fr); justify-content: center; gap: 28px; padding: 0 24px 80px; }
+.hn-page.with-toc .hn-layout { grid-template-columns: 240px minmax(0, 1fr); }
+/* Холст: листы стоят по координатам. На узком экране (класс stacked ставит скрипт) — друг под другом. */
+main.hn-doc { min-width: 0; overflow-x: auto; }
+.hn-canvas { position: relative; margin: 0 auto; }
+.hn-canvas > .hn-frame { box-shadow: 0 10px 30px #0006; }
+body.stacked .hn-canvas { width: auto !important; height: auto !important; display: flex; flex-direction: column; gap: 20px; }
+body.stacked .hn-canvas > .hn-frame { position: static; width: auto !important; max-width: 100%; height: auto !important; }
+.hn-toc { position: sticky; top: 0; align-self: start; max-height: 100vh; overflow: auto; font-size: 14px; padding: 12px 0; }
+/* Заголовок «Содержание» стоит в одной строке с кнопкой-значком, правее неё. */
+.hn-toc-title { display: flex; align-items: center; min-height: 32px; padding-left: 42px; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: #5aa9ff; font-weight: 700; margin-bottom: 10px; }
+.hn-toc a { display: block; color: #a9abb3; text-decoration: none; padding: 4px 8px; border-radius: 0; line-height: 1.35; }
+.hn-toc a:hover, .hn-toc a.active { color: #fff; background: #25272c; }
+.hn-toc a.l2 { padding-left: 20px; }
+.hn-toc a.l3 { padding-left: 32px; font-size: 13px; }
+.hn-toc-toggle { position: fixed; top: 12px; left: 24px; z-index: 20; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0; background: #1f2024; color: #9a9ba3; border: 1px solid #34363c; cursor: pointer; }
+.hn-toc-toggle[aria-expanded="true"] { color: #5aa9ff; }
+.hn-toc-toggle:hover { color: #fff; border-color: #5aa9ff; }
+body.toc-hidden .hn-toc { display: none; }
+body.toc-hidden.with-toc .hn-layout { grid-template-columns: minmax(0, 1fr); }
+.hn-lightbox { position: fixed; inset: 0; background: #07080aee; display: flex; align-items: center; justify-content: center; z-index: 50; cursor: zoom-out; }
+.hn-lightbox[hidden] { display: none; }
+.hn-lightbox img { max-width: 94vw; max-height: 90vh; border-radius: 0; box-shadow: 0 10px 40px #000; cursor: zoom-in; }
+.hn-lightbox.full { overflow: auto; display: block; text-align: center; }
+.hn-lightbox.full img { max-width: none; max-height: none; cursor: zoom-out; margin: 20px auto; }
+.hn-lightbox button { position: fixed; background: #25272ccc; color: #fff; border: 1px solid #44464d; border-radius: 0; font: 22px/1 'Segoe UI', sans-serif; padding: 8px 14px; cursor: pointer; }
+.hn-lightbox .hn-close { top: 14px; right: 16px; font-size: 16px; }
+.hn-lightbox .hn-prev { left: 14px; top: 50%; }
+.hn-lightbox .hn-next { right: 14px; top: 50%; }
+.hn-lightbox .hn-caption { position: fixed; bottom: 12px; left: 0; right: 0; text-align: center; color: #c9cad1; font-size: 13px; }
+@media (max-width: 900px) {
+  .hn-page.with-toc .hn-layout { grid-template-columns: minmax(0, 1fr); }
+  .hn-toc-toggle { top: 16px; left: 10px; }
+  .hn-toc { position: static; max-height: none; border-bottom: 1px solid #2b2d32; padding: 0 0 12px; }
+  .hn-frame[data-pad="xl"] { padding: 28px 20px !important; }
+  .hn-layout { padding: 16px 10px 48px; }
+}
+@media print {
+  body.hn-page { background: #fff; }
+  .hn-toc, .hn-toc-toggle, .hn-lightbox { display: none !important; }
+  .hn-layout { display: block; padding: 0; }
+  .hn-canvas > .hn-frame { box-shadow: none; }
+}
+
+/* Оформление содержимого документа. Используется и в редакторе, и в сохранённом HTML-файле. */
+.hn-doc {
+  --hn-text: #e6e6e9;
+  --hn-muted: #9a9ba3;
+  --hn-line: #34363c;
+  --hn-accent: #5aa9ff;
+  --hn-code-bg: #2a2c31;
+  --hn-quote: #2a3a4f;
+  color: var(--hn-text);
+  font: 16px/1.65 'Segoe UI', Arial, sans-serif;
+  overflow-wrap: break-word;
+}
+.hn-doc > :first-child { margin-top: 0; }
+.hn-doc h1, .hn-doc h2, .hn-doc h3, .hn-doc h4 { line-height: 1.25; font-weight: 650; margin: 1.6em 0 .55em; }
+.hn-doc h1 { font-size: 2.1em; letter-spacing: -.01em; }
+.hn-doc h2 { font-size: 1.6em; }
+.hn-doc h3 { font-size: 1.3em; }
+.hn-doc h4 { font-size: 1.1em; }
+.hn-doc p { margin: .55em 0 .9em; }
+.hn-doc a { color: var(--hn-accent); text-underline-offset: 3px; }
+.hn-doc ul, .hn-doc ol { padding-left: 1.6em; margin: .5em 0 1em; }
+.hn-doc li > p { margin: .2em 0; }
+.hn-doc blockquote { margin: 1.2em 0; padding: .6em 1.1em; border-left: 3px solid var(--hn-accent); background: var(--hn-quote); border-radius: 0; }
+.hn-doc code { background: var(--hn-code-bg); padding: .12em .4em; border-radius: 0; font: .9em Consolas, 'Cascadia Mono', monospace; }
+.hn-doc pre { background: var(--hn-code-bg); padding: 14px 16px; border-radius: 0; overflow-x: auto; }
+.hn-doc pre code { background: none; padding: 0; font-size: .88em; }
+.hn-doc hr { border: 0; border-top: 1px solid var(--hn-line); margin: 2em 0; }
+.hn-doc mark { color: inherit; border-radius: 0; padding: 0 .1em; }
+
+/* Картинки: ширина и выравнивание задаются атрибутами data-width / data-align. */
+.hn-doc img { display: block; max-width: 100%; height: auto; margin: 1em auto; border-radius: 0; cursor: zoom-in; }
+.hn-doc img[data-align="left"] { margin-left: 0; }
+.hn-doc img[data-align="right"] { margin-right: 0; }
+/* Обтекание «вокруг рамки»: картинка прижата к краю, текст идёт рядом. Заголовки и линии начинаются под ней. */
+.hn-doc img[data-wrap="left"] { float: left; margin: .35em 1.4em .8em 0; }
+.hn-doc img[data-wrap="right"] { float: right; margin: .35em 0 .8em 1.4em; }
+.hn-doc h1, .hn-doc h2, .hn-doc h3, .hn-doc h4, .hn-doc hr, .hn-doc table, .hn-doc .hn-video:not([data-wrap]), .hn-doc .hn-spoiler { clear: both; }
+/* Листы на холсте (hnFrame) и блоки внутри них (hnBlock). Оформление у них общее. */
+.hn-doc .hn-frame { position: absolute; box-sizing: border-box; border: 1px solid transparent; min-width: 0; }
+.hn-doc .hn-frame::after { content: ''; display: block; clear: both; }
+.hn-doc .hn-block { margin: 1em 0; border: 1px solid transparent; min-width: 0; box-sizing: border-box; max-width: 100%; }
+.hn-doc :is(.hn-frame, .hn-block)[data-border="line"] { border-color: var(--hn-line); }
+.hn-doc :is(.hn-frame, .hn-block)[data-border="accent"] { border-color: var(--hn-line); border-left: 3px solid var(--hn-accent); }
+.hn-doc :is(.hn-frame, .hn-block)[data-pad="none"] { padding: 0; }
+.hn-doc :is(.hn-frame, .hn-block)[data-pad="s"] { padding: 10px 14px; }
+.hn-doc :is(.hn-frame, .hn-block)[data-pad="m"] { padding: 22px 26px; }
+.hn-doc :is(.hn-frame, .hn-block)[data-pad="l"] { padding: 34px 38px; }
+.hn-doc :is(.hn-frame, .hn-block)[data-pad="xl"] { padding: 56px 64px; }
+.hn-doc :is(.hn-frame, .hn-block, .hn-frame-content, .hn-block-content) > :first-child { margin-top: 0; }
+.hn-doc :is(.hn-frame, .hn-block, .hn-frame-content, .hn-block-content) > :last-child { margin-bottom: 0; }
+.hn-doc :is(.hn-frame-content, .hn-block-content).fixed { height: 100%; overflow-y: auto; }
+.hn-doc .hn-row { display: flex; gap: 18px; margin: 1em 0; clear: both; }
+.hn-doc .hn-row > .hn-block { flex: 1 1 0; margin: 0; }
+@media (max-width: 700px) { .hn-doc .hn-row { flex-direction: column; } .hn-doc .hn-row > .hn-block { width: auto !important; } }
+
+/* Пользовательские и стандартные эмодзи в строке текста. */
+.hn-doc img.hn-emoji { display: inline-block; width: auto; height: 1.35em; margin: 0 .05em; vertical-align: -.3em; cursor: default; float: none; }
+
+/* Видео-файл. YouTube и Vimeo вставляются ссылкой: их плеер не играет в файле, открытом с диска. */
+.hn-doc .hn-video { margin: 1.2em auto; max-width: 100%; }
+.hn-doc .hn-video[data-wrap="left"] { float: left; margin: .35em 1.4em .8em 0; }
+.hn-doc .hn-video[data-wrap="right"] { float: right; margin: .35em 0 .8em 1.4em; }
+/* Галерея-слайд-шоу: картинки лежат друг на друге, видна одна; высота — по самой высокой. */
+.hn-doc .hn-gallery { display: grid; position: relative; max-width: 100%; margin: 1em auto; background: #0000001a; cursor: zoom-in; line-height: 0; }
+.hn-doc .hn-gallery[data-align="left"] { margin-left: 0; }
+.hn-doc .hn-gallery[data-align="right"] { margin-right: 0; }
+.hn-doc .hn-gallery[data-wrap="left"] { float: left; margin: .35em 1.4em .8em 0; }
+.hn-doc .hn-gallery[data-wrap="right"] { float: right; margin: .35em 0 .8em 1.4em; }
+.hn-doc .hn-gallery img { grid-area: 1 / 1; width: 100%; height: 100%; object-fit: contain; margin: 0; opacity: 0; transition: opacity .8s ease; }
+.hn-doc .hn-gallery:not(.running) img:first-child, .hn-doc .hn-gallery img.active { opacity: 1; }
+.hn-doc .hn-video video { display: block; width: 100%; border-radius: 0; background: #000; }
+
+/* Кнопки-ссылки. */
+.hn-doc .hn-button { display: inline-block; padding: .45em 1.15em; margin: .15em .25em .15em 0; border-radius: 0; border: 1px solid var(--hn-accent); background: var(--hn-accent); color: #0b1320; font-weight: 600; text-decoration: none; line-height: 1.4; }
+.hn-doc .hn-button.outline { background: transparent; color: var(--hn-accent); }
+.hn-doc .hn-button:hover { filter: brightness(1.12); }
+
+/* Спойлеры. В файле — <details>, в редакторе — div с теми же классами. */
+.hn-doc .hn-spoiler { margin: 1em 0; border: 1px solid var(--hn-line); border-radius: 0; background: #25262b; }
+.hn-doc .hn-spoiler-summary { padding: .6em 1em; font-weight: 600; cursor: pointer; list-style: none; }
+.hn-doc .hn-spoiler-summary::-webkit-details-marker { display: none; }
+.hn-doc .hn-spoiler-summary::before { content: '▸'; display: inline-block; width: 1.1em; color: var(--hn-accent); transition: transform .15s; }
+.hn-doc details[open] > .hn-spoiler-summary::before, .hn-doc div.hn-spoiler > .hn-spoiler-summary::before { transform: rotate(90deg); }
+.hn-doc .hn-spoiler-body { padding: .1em 1em .5em 2.1em; border-top: 1px solid var(--hn-line); }
+
+/* Таблицы. */
+.hn-doc table { border-collapse: collapse; width: 100%; margin: 1.2em 0; table-layout: fixed; }
+.hn-doc th, .hn-doc td { border: 1px solid var(--hn-line); padding: .5em .7em; vertical-align: top; position: relative; }
+.hn-doc th { background: #2a2c31; text-align: left; font-weight: 600; }
+.hn-doc td > p, .hn-doc th > p { margin: 0; }
+
+/* Списки задач. */
+.hn-doc ul[data-type="taskList"] { list-style: none; padding-left: .3em; }
+.hn-doc ul[data-type="taskList"] li { display: flex; gap: .55em; align-items: flex-start; }
+.hn-doc ul[data-type="taskList"] li > label { margin-top: .3em; }
+.hn-doc ul[data-type="taskList"] li > div { flex: 1; }
+.hn-doc ul[data-type="taskList"] li[data-checked="true"] > div { color: var(--hn-muted); text-decoration: line-through; }
+.hn-doc input[type="checkbox"] { accent-color: var(--hn-accent); width: 1em; height: 1em; }
+
+</style>
+<script type="application/json" id="hn-settings">{"toc":true,"width":"normal"}</script>
+</head>
+<body class="hn-page with-toc">
+<div class="hn-layout">
+<button class="hn-toc-toggle" type="button" aria-controls="hn-toc" aria-expanded="true" aria-label="Содержание" title="Содержание"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h.01M3 12h.01M3 19h.01M8 5h13M8 12h13M8 19h13"/></svg></button>
+<nav class="hn-toc" id="hn-toc" aria-label="Содержание"><div class="hn-toc-title">Содержание</div><a class="l1" href="#nte-interactive-map-кошельки-сейфы-еда-и-монстры-на-карте">NTE Interactive Map — кошельки, сейфы, еда и монстры на карте</a><a class="l2" href="#что-появляется-на-карте">Что появляется на карте</a><a class="l2" href="#меню-настроек">Меню настроек</a><a class="l2" href="#как-метки-исчезают">Как метки исчезают</a><a class="l2" href="#столбы-света">Столбы света</a><a class="l2" href="#важно-знать">Важно знать</a><a class="l2" href="#установка">Установка</a><a class="l2" href="#где-мод-хранит-отметки-и-настройки">Где мод хранит отметки и настройки</a><a class="l2" href="#что-проверено">Что проверено</a><a class="l2" href="#откуда-данные">Откуда данные</a></nav>
+<main class="hn-doc">
+<div class="hn-canvas" style="width: 1000px"><div data-type="frame" class="hn-frame" data-x="0" data-y="0" data-w="960" data-border="line" data-pad="l" data-bg="#1f2024" style="left: 0px; top: 0px; width: 960px; background: #1f2024;"><h1 id="nte-interactive-map-кошельки-сейфы-еда-и-монстры-на-карте">NTE Interactive Map — кошельки, сейфы, еда и монстры на карте</h1><p><strong>NTE Interactive Map</strong> — мод для Neverness to Everness. Показывает на большой карте и миникарте места потерянных кошельков (Lost Wallet), сейфы, уличную еду и напитки, а также места появления монстров. То, что вы уже собрали, и места, где ничего нет, мод прячет до недельного сброса, а побеждённых монстров — пока игра их не вернёт. Над кошельками горят столбы света. Что и когда показывать, настраивается в меню прямо на карте.</p><blockquote><p><strong>Версия 0.6.4-beta.</strong> Проверена на игре версии 1.5 (обновление 11 ноября 2026 года). UE4SS и другие загрузчики не нужны: это обычный PAK-мод из трёх файлов.</p></blockquote><h2 id="что-появляется-на-карте">Что появляется на карте</h2><table style="min-width: 375px;"><colgroup><col style="width: 200px;"><col style="width: 150px;"><col style="min-width: 25px;"></colgroup><tbody><tr><th colspan="1" rowspan="1" colwidth="200"><p>Метка</p></th><th colspan="1" rowspan="1" colwidth="150"><p>Сколько мест</p></th><th colspan="1" rowspan="1"><p>Как выглядит</p></th></tr><tr><td colspan="1" rowspan="1" colwidth="200"><p>Потерянный кошелёк</p></td><td colspan="1" rowspan="1" colwidth="150"><p>618</p></td><td colspan="1" rowspan="1"><p>Игровой значок кошелька; над самим кошельком в мире — столб света</p></td></tr><tr><td colspan="1" rowspan="1" colwidth="200"><p>Сейф Lv1</p></td><td colspan="1" rowspan="1" colwidth="150"><p>8</p></td><td colspan="1" rowspan="1"><p>Голубоватый сундук</p></td></tr><tr><td colspan="1" rowspan="1" colwidth="200"><p>Сейф Lv2</p></td><td colspan="1" rowspan="1" colwidth="150"><p>2</p></td><td colspan="1" rowspan="1"><p>Золотой сундук</p></td></tr><tr><td colspan="1" rowspan="1" colwidth="200"><p>Еда и напитки</p></td><td colspan="1" rowspan="1" colwidth="150"><p>568</p></td><td colspan="1" rowspan="1"><p>Бутылка; в этих местах лежат напитки, шоколад, чипсы или печенье</p></td></tr><tr><td colspan="1" rowspan="1" colwidth="200"><p>Монстры</p></td><td colspan="1" rowspan="1" colwidth="150"><p>615</p></td><td colspan="1" rowspan="1"><p>Красный значок монстра; в подсказке — вид монстра (27 видов, названия пока по-английски)</p></td></tr></tbody></table><p>Метки видны по всему городу, даже в районах, которые игра ещё не загрузила. Они рисуются поверх обычных значков карты, но не закрывают стрелку персонажа. В карточке справа и в списке при выборе метки у каждой категории свой значок.</p><h2 id="меню-настроек">Меню настроек</h2><p>На большой карте, слева от кнопки поиска (лупы), стоит круглая кнопка с кошельком. Она открывает и закрывает меню.</p><table style="min-width: 325px;"><colgroup><col style="width: 300px;"><col style="min-width: 25px;"></colgroup><tbody><tr><th colspan="1" rowspan="1" colwidth="300"><p>Кнопка</p></th><th colspan="1" rowspan="1"><p>Что делает</p></th></tr><tr><td colspan="1" rowspan="1" colwidth="300"><p>Масштаб сейчас: N-й щелчок</p></td><td colspan="1" rowspan="1"><p>Подсказка: номер текущего щелчка масштаба, считая от самого дальнего. Не нажимается.</p></td></tr><tr><td colspan="1" rowspan="1" colwidth="300"><p>Метки на карте: вкл / выкл</p></td><td colspan="1" rowspan="1"><p>Прячет или показывает все метки мода на большой карте.</p></td></tr><tr><td colspan="1" rowspan="1" colwidth="300"><p>Метки на миникарте: вкл / выкл</p></td><td colspan="1" rowspan="1"><p>То же для миникарты.</p></td></tr><tr><td colspan="1" rowspan="1" colwidth="300"><p>Столбы света: вкл / выкл</p></td><td colspan="1" rowspan="1"><p>Включает или выключает столбы над кошельками.</p></td></tr><tr><td colspan="1" rowspan="1" colwidth="300"><p>Названия категорий: «Кошельки», «Сейфы», «Еда и напитки», «Монстры»</p></td><td colspan="1" rowspan="1"><p>Прячут или показывают эту категорию на обеих картах.</p></td></tr><tr><td colspan="1" rowspan="1" colwidth="300"><p>с N-го щелчка</p></td><td colspan="1" rowspan="1"><p>С какого щелчка масштаба категория видна на большой карте. Нажатие берёт текущий масштаб карты: приблизьте карту как нужно и нажмите.</p></td></tr><tr><td colspan="1" rowspan="1" colwidth="300"><p>− и +</p></td><td colspan="1" rowspan="1"><p>Сдвигают этот порог на один щелчок. 0 — «видны всегда».</p></td></tr></tbody></table><ul><li><p>По умолчанию метки появляются с 6-го щелчка масштаба, порог можно поднять до 50-го.</p></li><li><p>Выключенные пункты становятся тусклыми. При наведении на любую кнопку всплывает подсказка.</p></li><li><p>Настройки сохраняются между запусками игры и общие для всех персонажей.</p></li><li><p>Пока открыта панель поиска справа, меню прячется вместе с лупой.</p></li></ul><h2 id="как-метки-исчезают">Как метки исчезают</h2><ul><li><p>Подобрали кошелёк или открыли сейф — значок пропадает с обеих карт примерно через 1–3 секунды.</p></li><li><p>Подошли к месту кошелька или еды, а там пусто — мод замечает это сам и прячет метку. Проверяются места в пределах 120 м от персонажа и примерно на его высоте (±6 м), когда игра уже загрузила этот участок. Подобранная еда прячется так же: место становится пустым.</p></li><li><p>Если предмет в этом месте всё-таки появится, пока вы рядом, метка вернётся.</p></li><li><p>Метка монстра прячется, пока игра считает этого монстра побеждённым, и возвращается, когда он снова появляется.</p></li><li><p>Спрятанную метку нельзя случайно выбрать на карте.</p></li></ul><p>В понедельник в 05:00 по времени сервера игра обновляет кошельки, сейфы и еду. Тогда их метки возвращаются, и неделя начинается с полной карты. Время мод берёт у игры, а не с часов компьютера, поэтому часовой пояс не важен. Отметки о собранном ведутся для каждого персонажа отдельно.</p><h2 id="столбы-света">Столбы света</h2><p>Над каждым кошельком, который игра положила в мир, поднимается столб света высотой около 60 м: широкий голубой ореол и яркая золотая сердцевина, оба мерцают. Столб виден издалека и исчезает вместе с кошельком. Выключается в меню пунктом «Столбы света».</p><h2 id="важно-знать">Важно знать</h2><ul><li><p>Метка кошелька, сейфа или еды — это место, где предмет <em>может</em> лежать, а не обещание, что он там есть. Мест гораздо больше, чем предметов: каждую неделю они появляются только в части из них.</p></li><li><p>Мод не знает заранее, какие места выпали на этой неделе: он проверяет только то, что рядом с вами. Далёкие метки остаются на карте, пока вы до них не дойдёте.</p></li><li><p>О собранном до установки мод не знает. Такие кошельки и еда спрячутся, когда вы пройдёте рядом (место окажется пустым). Сейфы, открытые до установки, будут видны до ближайшего понедельника.</p></li><li><p>Мод ничего не отправляет на серверы игры и не использует команды GM. Всё, что он помнит, хранится в маленьких файлах на вашем компьютере.</p></li><li><p>Мод может конфликтовать с другими модами, которые меняют те же файлы игры: <code>DT_MiniMapIcon</code>, <code>DT_MiniMapFixedIcons</code>, <code>InteractBox_Base_LV1</code>, <code>BP_WorldSafeBox_Base</code>. Само окно карты мод не заменяет: меню добавляется в него при открытии.</p></li><li><p>После следующих обновлений игры может понадобиться новая версия мода.</p></li></ul><h2 id="установка">Установка</h2><ol><li><p>Закройте игру: пока она запущена, файлы мода заняты.</p></li><li><p>Откройте папку, куда установлена игра, и перейдите в папку ниже. Если каких-то папок нет, создайте их.</p></li><li><p>Положите туда все три файла <code>NTE_InteractiveMap_999_P</code>: <code>.pak</code>, <code>.ucas</code> и <code>.utoc</code>. Нужны все три — без любого из них мод не загрузится.</p></li><li><p>Запустите игру. Метки появятся на большой карте и миникарте, а кнопка меню — рядом с лупой на большой карте.</p></li></ol><pre><code>&lt;папка игры&gt;\Client\WindowsNoEditor\HT\Content\Paks\Mods\UI\NTE Interactive Map\</code></pre><p><strong>Обновление.</strong> Закройте игру и замените три файла новыми. Отметки о собранном и настройки меню сохранятся: они лежат отдельно, в папке сохранений.</p><p><strong>Удаление.</strong> Закройте игру и удалите эти три файла.</p><h2 id="где-мод-хранит-отметки-и-настройки">Где мод хранит отметки и настройки</h2><p>Всё лежит в папке сохранений игры. Чтобы открыть её, вставьте этот путь в адресную строку проводника:</p><pre><code>%LOCALAPPDATA%\HT\Saved_Global\SaveGames</code></pre><table style="min-width: 325px;"><colgroup><col style="width: 300px;"><col style="min-width: 25px;"></colgroup><tbody><tr><th colspan="1" rowspan="1" colwidth="300"><p>Начало имени файла</p></th><th colspan="1" rowspan="1"><p>Что значит</p></th></tr><tr><td colspan="1" rowspan="1" colwidth="300"><p><code>NTE_IM_Wallet_v1_</code></p></td><td colspan="1" rowspan="1"><p>Кошелёк подобран</p></td></tr><tr><td colspan="1" rowspan="1" colwidth="300"><p><code>NTE_IM_WalletEmpty_v1_</code></p></td><td colspan="1" rowspan="1"><p>Место кошелька оказалось пустым</p></td></tr><tr><td colspan="1" rowspan="1" colwidth="300"><p><code>NTE_IM_PropEmpty_v1_</code></p></td><td colspan="1" rowspan="1"><p>Место еды оказалось пустым или еду уже подобрали</p></td></tr><tr><td colspan="1" rowspan="1" colwidth="300"><p><code>NTE_IM_Safe_v1_</code></p></td><td colspan="1" rowspan="1"><p>Сейф открыт</p></td></tr><tr><td colspan="1" rowspan="1" colwidth="300"><p><code>NTE_IM_Set_</code></p></td><td colspan="1" rowspan="1"><p>Настройки меню</p></td></tr></tbody></table><p>Один файл весит около 2 КБ. В имени отметки записаны персонаж, неделя и место. Отметки прошлых недель мод не учитывает. Сохранения самой игры и других модов он не трогает. Монстров мод не записывает: о побеждённых он узнаёт у самой игры.</p><p>Если метка пустого места спряталась по ошибке, закройте игру и удалите файлы <code>NTE_IM_WalletEmpty_v1_</code> или <code>NTE_IM_PropEmpty_v1_</code>: эти места проверятся заново, а подборы кошельков и открытые сейфы останутся. Чтобы вернуть настройки меню по умолчанию, удалите файлы <code>NTE_IM_Set_</code>.</p><h2 id="что-проверено">Что проверено</h2><p>Это бета-версия. В игре проверено:</p><ul><li><p>метки на большой карте и миникарте по всему городу;</p></li><li><p>скрытие после подбора кошелька и открытия сейфа, скрытие пустых мест;</p></li><li><p>отметки сохраняются после перезапуска игры;</p></li><li><p>недельный сброс 26 октября 2026 года: метки вернулись, открытые после него сейфы снова скрылись;</p></li><li><p>на игре 1.5: метки еды прячутся после подбора, метки монстров — после победы, столбы света над кошельками;</p></li><li><p>меню: все выключатели, пороги масштаба для каждой категории, сохранение настроек после перезапуска, выключенные метки не мелькают при открытии, приближении и перетягивании карты.</p></li></ul><p>Пока не проверено: включение и выключение категорий мода в собственных фильтрах карты игры. Влияние на FPS не измерялось.</p><details class="hn-spoiler"><summary class="hn-spoiler-summary">История версий</summary><div class="hn-spoiler-body"><table style="min-width: 165px;"><colgroup><col style="width: 140px;"><col style="min-width: 25px;"></colgroup><tbody><tr><th colspan="1" rowspan="1" colwidth="140"><p>Версия</p></th><th colspan="1" rowspan="1"><p>Что изменилось</p></th></tr><tr><td colspan="1" rowspan="1" colwidth="140"><p>0.6.4-beta</p></td><td colspan="1" rowspan="1"><p>Свой выключатель у каждой категории. Выключенные метки больше не мелькают при открытии, приближении и перетягивании карты.</p></td></tr><tr><td colspan="1" rowspan="1" colwidth="140"><p>0.6.3-beta</p></td><td colspan="1" rowspan="1"><p>Кнопки меню в стиле панелей карты, панель шире.</p></td></tr><tr><td colspan="1" rowspan="1" colwidth="140"><p>0.6.2-beta</p></td><td colspan="1" rowspan="1"><p>Порог масштаба до 50 щелчков; порог можно взять по текущему масштабу карты.</p></td></tr><tr><td colspan="1" rowspan="1" colwidth="140"><p>0.6.1-beta</p></td><td colspan="1" rowspan="1"><p>Меню стало читаемым: подписи на кнопках, тёмная подложка, подсказки.</p></td></tr><tr><td colspan="1" rowspan="1" colwidth="140"><p>0.6.0-beta</p></td><td colspan="1" rowspan="1"><p>Меню настроек у лупы: метки на карте и миникарте, столбы света, порог масштаба для каждой категории.</p></td></tr><tr><td colspan="1" rowspan="1" colwidth="140"><p>0.5.1-beta</p></td><td colspan="1" rowspan="1"><p>Спрятанные метки нельзя нажать; метки монстров прячутся после победы; столбы света стали выше.</p></td></tr><tr><td colspan="1" rowspan="1" colwidth="140"><p>0.5.0-beta</p></td><td colspan="1" rowspan="1"><p>Версия под игру 1.5. Метки еды и монстров, столбы света над кошельками, метки прячутся при сильном отдалении карты.</p></td></tr><tr><td colspan="1" rowspan="1" colwidth="140"><p>0.4.1-beta</p></td><td colspan="1" rowspan="1"><p>Пустые места проверяются быстрее и дальше: в радиусе 120 м вместо 40.</p></td></tr><tr><td colspan="1" rowspan="1" colwidth="140"><p>0.4.0-beta</p></td><td colspan="1" rowspan="1"><p>Мод сам прячет места, где кошелька нет.</p></td></tr><tr><td colspan="1" rowspan="1" colwidth="140"><p>0.3.3-beta</p></td><td colspan="1" rowspan="1"><p>Значки кошельков и сейфов рисуются поверх других меток карты.</p></td></tr><tr><td colspan="1" rowspan="1" colwidth="140"><p>0.3.2-beta</p></td><td colspan="1" rowspan="1"><p>Ещё 60 мест кошельков из файлов игры, всего 618.</p></td></tr><tr><td colspan="1" rowspan="1" colwidth="140"><p>0.3.1-beta</p></td><td colspan="1" rowspan="1"><p>Правильные значки в карточке и списке; спрятанную метку нельзя выбрать.</p></td></tr><tr><td colspan="1" rowspan="1" colwidth="140"><p>0.3.0-beta</p></td><td colspan="1" rowspan="1"><p>Добавлены сейфы Lv1 и Lv2.</p></td></tr></tbody></table></div></details><h2 id="откуда-данные">Откуда данные</h2><p>Места кошельков, сейфов и монстров взяты с интерактивной карты <a target="_blank" rel="noopener" href="https://nte.stardb.gg/map">StarDB</a> и сверены с файлами игры. Ещё 60 мест кошельков и все места еды найдены прямо в таблицах игры.</p></div></div>
+</main>
+</div>
+<div class="hn-lightbox" hidden><button class="hn-close" type="button" aria-label="Закрыть">Закрыть ✕</button><button class="hn-prev" type="button" aria-label="Предыдущая">‹</button><img alt=""><button class="hn-next" type="button" aria-label="Следующая">›</button><div class="hn-caption"></div></div>
+<script>
+// Скрипт сохранённого документа: просмотр картинок по щелчку, галереи-слайд-шоу и подсветка текущего раздела в содержании.
+(function () {
+  // Просмотр: щелчок по картинке открывает её крупно; стрелки, клавиши и свайп листают картинки
+  // того же набора — всех отдельных картинок документа или одной галереи.
+  var box = document.querySelector('.hn-lightbox');
+  var list = [];
+  var current = 0;
+  var big = box && box.querySelector('img');
+  var cap = box && box.querySelector('.hn-caption');
+  var show = function (i) {
+    current = (i + list.length) % list.length;
+    big.src = list[current].src;
+    big.alt = list[current].alt || '';
+    cap.textContent = (current + 1) + ' / ' + list.length + (list[current].alt ? ' · ' + list[current].alt : '');
+    box.classList.remove('full');
+  };
+  var open = function (items, i) {
+    list = items;
+    box.querySelector('.hn-prev').hidden = list.length < 2;
+    box.querySelector('.hn-next').hidden = list.length < 2;
+    show(i);
+    box.hidden = false;
+    document.body.style.overflow = 'hidden';
+  };
+  var close = function () { box.hidden = true; document.body.style.overflow = ''; };
+  if (box) {
+    var imgs = [].slice.call(document.querySelectorAll('main.hn-doc img:not(.hn-emoji)')).filter(function (img) {
+      return !img.closest('.hn-gallery') && !img.closest('a');
+    });
+    imgs.forEach(function (img, i) {
+      img.addEventListener('click', function () { open(imgs, i); });
+    });
+    big.addEventListener('click', function (e) { e.stopPropagation(); box.classList.toggle('full'); });
+    box.addEventListener('click', close);
+    box.querySelector('.hn-close').addEventListener('click', function (e) { e.stopPropagation(); close(); });
+    box.querySelector('.hn-prev').addEventListener('click', function (e) { e.stopPropagation(); show(current - 1); });
+    box.querySelector('.hn-next').addEventListener('click', function (e) { e.stopPropagation(); show(current + 1); });
+    document.addEventListener('keydown', function (e) {
+      if (box.hidden) return;
+      if (e.key === 'Escape') close();
+      if (e.key === 'ArrowRight') show(current + 1);
+      if (e.key === 'ArrowLeft') show(current - 1);
+    });
+    // Свайп влево-вправо на телефоне и планшете.
+    var sx = null;
+    box.addEventListener('touchstart', function (e) { sx = e.touches.length === 1 ? e.touches[0].clientX : null; }, { passive: true });
+    box.addEventListener('touchend', function (e) {
+      if (sx === null || list.length < 2 || box.classList.contains('full')) return;
+      var dx = e.changedTouches[0].clientX - sx;
+      sx = null;
+      if (Math.abs(dx) > 50) show(current + (dx < 0 ? 1 : -1));
+    });
+  }
+  // Галереи: картинки сменяют друг друга; щелчок открывает ту, что видна сейчас.
+  [].slice.call(document.querySelectorAll('.hn-gallery')).forEach(function (g) {
+    var pics = [].slice.call(g.querySelectorAll('img'));
+    if (!pics.length) return;
+    var at = 0;
+    g.classList.add('running');
+    pics[0].classList.add('active');
+    var next = function () {
+      pics[at].classList.remove('active');
+      at = (at + 1) % pics.length;
+      pics[at].classList.add('active');
+    };
+    var ms = Math.max(1, parseFloat(g.getAttribute('data-interval')) || 4) * 1000;
+    var timer = pics.length > 1 ? setInterval(next, ms) : 0;
+    g.addEventListener('click', function () {
+      if (!box) return;
+      open(pics.map(function (p) { return { src: p.src, alt: p.alt }; }), at);
+    });
+    // Пока смотрят крупно, слайд-шоу стоит, чтобы после закрытия была видна та же картинка.
+    if (box && 'MutationObserver' in window && timer) {
+      new MutationObserver(function () {
+        clearInterval(timer);
+        if (box.hidden) timer = setInterval(next, ms);
+      }).observe(box, { attributes: true, attributeFilter: ['hidden'] });
+    }
+  });
+  // Холст: высота — по самому нижнему листу. Если окно уже холста, листы встают друг под другом сверху вниз.
+  var canvas = document.querySelector('.hn-canvas');
+  if (canvas) {
+    var frames = [].slice.call(canvas.querySelectorAll(':scope > .hn-frame'));
+    frames.sort(function (a, b) { return (+a.dataset.y - +b.dataset.y) || (+a.dataset.x - +b.dataset.x); })
+      .forEach(function (f, i) { f.style.order = i; });
+    var width = parseInt(canvas.style.width, 10) || 0;
+    var fit = function () {
+      var main = canvas.parentElement;
+      document.body.classList.toggle('stacked', main.clientWidth + 2 < width);
+      if (document.body.classList.contains('stacked')) return;
+      var bottom = 0;
+      frames.forEach(function (f) { bottom = Math.max(bottom, f.offsetTop + f.offsetHeight); });
+      canvas.style.height = (bottom + 40) + 'px';
+    };
+    fit();
+    window.addEventListener('resize', fit);
+    if ('ResizeObserver' in window) new ResizeObserver(fit).observe(canvas.parentElement);
+  }
+  // Кнопка-значок «Содержание» прячет и показывает содержание; выбор запоминается в этом браузере.
+  var toggle = document.querySelector('.hn-toc-toggle');
+  if (toggle) {
+    var key = 'hn-toc-hidden:' + location.pathname;
+    var setHidden = function (hidden) {
+      document.body.classList.toggle('toc-hidden', hidden);
+      toggle.setAttribute('aria-expanded', hidden ? 'false' : 'true');
+    };
+    var saved = null;
+    try { saved = localStorage.getItem(key); } catch (e) { /* хранилище недоступно */ }
+    setHidden(saved === '1');
+    toggle.addEventListener('click', function () {
+      var hidden = !document.body.classList.contains('toc-hidden');
+      setHidden(hidden);
+      try { localStorage.setItem(key, hidden ? '1' : '0'); } catch (e) { /* без запоминания */ }
+    });
+  }
+  var links = [].slice.call(document.querySelectorAll('.hn-toc a'));
+  if (links.length && 'IntersectionObserver' in window) {
+    var byId = {};
+    links.forEach(function (a) { byId[a.getAttribute('href').slice(1)] = a; });
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting && byId[en.target.id]) {
+          links.forEach(function (a) { a.classList.remove('active'); });
+          byId[en.target.id].classList.add('active');
+        }
+      });
+    }, { rootMargin: '0px 0px -70% 0px' });
+    Object.keys(byId).forEach(function (id) { var h = document.getElementById(id); if (h) obs.observe(h); });
+  }
+})();
+
+</script>
+</body>
+</html>
