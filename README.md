@@ -9,7 +9,7 @@
 
 <p align="center">
   <a href="https://github.com/Ovolsan/NTE-Interactive-Map/releases/latest"><b>⬇ Скачать</b></a> ·
-  <a href="https://raw.githack.com/Ovolsan/NTE-Interactive-Map/main/%D0%9E%D0%BF%D0%B8%D1%81%D0%B0%D0%BD%D0%B8%D0%B5%20%D0%BC%D0%BE%D0%B4%D0%B0.html"><b>📖 Полное описание</b></a>
+  <a href="https://ovolsan.github.io/NTE-Interactive-Map/%D0%9E%D0%BF%D0%B8%D1%81%D0%B0%D0%BD%D0%B8%D0%B5%20%D0%BC%D0%BE%D0%B4%D0%B0.html"><b>📖 Полное описание</b></a>
 </p>
 
 ---
@@ -85,7 +85,7 @@
 ## Подробнее
 
 Как метки прячутся, где мод хранит отметки и история версий — в
-[полном описании](https://raw.githack.com/Ovolsan/NTE-Interactive-Map/main/%D0%9E%D0%BF%D0%B8%D1%81%D0%B0%D0%BD%D0%B8%D0%B5%20%D0%BC%D0%BE%D0%B4%D0%B0.html)
+[полном описании](https://ovolsan.github.io/NTE-Interactive-Map/%D0%9E%D0%BF%D0%B8%D1%81%D0%B0%D0%BD%D0%B8%D0%B5%20%D0%BC%D0%BE%D0%B4%D0%B0.html)
 (файл [`Описание мода.html`](Описание%20мода.html) лежит и в архиве релиза).
 
 Это бета-версия. Если что-то работает не так, создайте [issue](https://github.com/Ovolsan/NTE-Interactive-Map/issues).
